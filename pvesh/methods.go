@@ -39,11 +39,7 @@ func (sh *Pvesh) fetch(name string, arg ...string) PveshCallResponse {
 	exc := exec.CommandContext(sh.ctx, name, arg...)
 
 	out, err := exc.CombinedOutput()
-	if err != nil {
-		return NewPveshCallResponse(nil, err)
-	}
-
-	return NewPveshCallResponse(out, nil)
+	return NewPveshCallResponse(out, err)
 }
 
 // Get - Call API GET on <path>.

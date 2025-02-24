@@ -68,43 +68,16 @@ func (sh *Pvesh) Version() (PveSystemVersion, error) {
 
 // =======================================
 
-func (sh *Pvesh) StorageList() ([]string, error) {
+func (sh *Pvesh) Storage() ([]PveStorageInfo, error) {
 
-	list := []string{}
+	infoList := []PveStorageInfo{}
 
 	if err := sh.Get("storage").
-		Resolve(&list); err != nil {
+		Resolve(&infoList); err != nil {
 		return nil, err
 	}
 
-	return list, nil
-}
-
-func (sh *Pvesh) Storage() ([]PveStorageInfo, error) {
-	list, err := sh.StorageList()
-	if err != nil {
-		return nil, err
-	}
-
-	infoList := make([]PveStorageInfo, len(list))
-
-	var Error error = nil
-
-	for i, infoname := range list {
-
-		inf := PveStorageInfo{}
-
-		if err := sh.Get("storage", infoname).
-			Resolve(&inf); err != nil {
-			Error = err
-			break
-		}
-
-		infoList[i] = inf
-
-	}
-
-	return infoList, Error
+	return infoList, nil
 }
 
 // ==============================================================================
