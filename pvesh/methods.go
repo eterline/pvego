@@ -2,6 +2,7 @@ package pvesh
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"strings"
 )
@@ -14,7 +15,7 @@ type PveshCallResponse struct {
 func (r PveshCallResponse) Resolve(v any) error {
 
 	if r.Error != nil {
-		return r.Error
+		return fmt.Errorf("pvesh response error: %w", r.Error)
 	}
 
 	return json.Unmarshal(r.ResponseBytes, v)
@@ -33,33 +34,32 @@ func NewPveshCallResponse(
 // ========== Class methods ==========
 
 func (sh *Pvesh) fetch(name string, arg ...string) PveshCallResponse {
-
 	arg = append(arg, "--output-format", FormatJSON)
 
 	exc := exec.CommandContext(sh.ctx, name, arg...)
-
 	out, err := exc.CombinedOutput()
+
 	return NewPveshCallResponse(out, err)
 }
 
 // Get - Call API GET on <path>.
 func (sh *Pvesh) Get(path ...string) PveshCallResponse {
-	return sh.fetch(sh.command, "get", joinPath(path...))
+	return sh.fetch(sh.root, "get", joinPath(path...))
 }
 
-// Get - Call API POST on <path>.
+// Create - Call API POST on <path>.
 func (sh *Pvesh) Create(path ...string) PveshCallResponse {
-	return sh.fetch(sh.command, "create", joinPath(path...))
+	return sh.fetch(sh.root, "create", joinPath(path...))
 }
 
-// Get - Call API DELETE on <path>.
+// Delete - Call API DELETE on <path>.
 func (sh *Pvesh) Delete(path ...string) PveshCallResponse {
-	return sh.fetch(sh.command, "delete", joinPath(path...))
+	return sh.fetch(sh.root, "delete", joinPath(path...))
 }
 
-// Get - Call API PUT on <path>.
+// Set - Call API PUT on <path>.
 func (sh *Pvesh) Set(path ...string) PveshCallResponse {
-	return sh.fetch(sh.command, "set", joinPath(path...))
+	return sh.fetch(sh.root, "set", joinPath(path...))
 }
 
 func joinPath(path ...string) string {

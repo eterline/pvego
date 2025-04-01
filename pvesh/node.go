@@ -1,6 +1,12 @@
 package pvesh
 
-import "strconv"
+import (
+	"net"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+)
 
 type NodeTime struct {
 	Localtime int    `json:"localtime"`
@@ -103,4 +109,115 @@ func (sh *Pvesh) NodeStatus() (NodeStatus, error) {
 	}
 
 	return stats, nil
+}
+
+type NodeDnsAddr string
+
+func (dns NodeDnsAddr) IP() (net.IP, bool) {
+	if dns != "" {
+		return net.ParseIP(string(dns)), true
+	}
+	return nil, false
+}
+
+type NodeDnsInfo struct {
+	Search string      `json:"search,omitempty"`
+	Dns1   NodeDnsAddr `json:"dns1,omitempty"`
+	Dns2   NodeDnsAddr `json:"dns2,omitempty"`
+	Dns3   NodeDnsAddr `json:"dns3,omitempty"`
+}
+
+// DnsInfo - read DNS settings
+func (sh *Pvesh) Dns() (NodeDnsInfo, error) {
+	infoList := NodeDnsInfo{}
+	err := sh.Get("dns").Resolve(&infoList)
+	return infoList, err
+}
+
+type NodeHostsInfo struct {
+	Data   string `json:"data"`
+	Digest string `json:"digest"`
+}
+
+func (hosts NodeHostsInfo) FormatData() map[*net.IP][]string {
+	mappedHosts := make(map[*net.IP][]string)
+
+	lines := strings.Split(hosts.Data, "\n")
+	reSpaceClean := regexp.MustCompile(`\s+`)
+
+	for _, line := range lines {
+
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if strings.Contains(line, "#") {
+			continue
+		}
+
+		line = reSpaceClean.ReplaceAllString(line, " ")
+		splittedLine := strings.Split(line, " ")
+		lineIp := net.ParseIP(splittedLine[0])
+
+		mappedHosts[&lineIp] = splittedLine[1:]
+	}
+
+	return mappedHosts
+}
+
+// Hosts - read hosts file
+func (sh *Pvesh) Hosts() (NodeDnsInfo, error) {
+	infoList := NodeDnsInfo{}
+	err := sh.Get("hosts").Resolve(&infoList)
+	return infoList, err
+}
+
+type NetstatInfo struct {
+	Dev  string `json:"dev"`
+	In   string `json:"in"`
+	Out  string `json:"out"`
+	Vmid VMID   `json:"vmid"`
+}
+
+func (stat NetstatInfo) BytesIn() int64 {
+	i, err := strconv.ParseInt(stat.In, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return i
+}
+
+func (stat NetstatInfo) BytesOut() int64 {
+	i, err := strconv.ParseInt(stat.Out, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return i
+}
+
+// Netstat - returns network stats for vms and containers
+func (sh *Pvesh) Netstat() ([]NetstatInfo, error) {
+	infoList := []NetstatInfo{}
+	err := sh.Get("netstat").Resolve(&infoList)
+	return infoList, err
+}
+
+type TimeInfo struct {
+	Local    int64  `json:"localtime"`
+	Time     int64  `json:"time"`
+	TimeZone string `json:"timezone"`
+}
+
+func (t TimeInfo) LocalIs() time.Time {
+	return time.Unix(t.Local, 0)
+}
+
+func (t TimeInfo) TimeIs() time.Time {
+	return time.Unix(t.Time, 0)
+}
+
+// Time - returns time of host
+func (sh *Pvesh) Time() (TimeInfo, error) {
+	infoList := TimeInfo{}
+	err := sh.Get("time").Resolve(&infoList)
+	return infoList, err
 }

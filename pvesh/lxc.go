@@ -1,7 +1,6 @@
 package pvesh
 
 import (
-	"strconv"
 	"strings"
 )
 
@@ -24,9 +23,31 @@ type LxcContainer struct {
 	Tags      string `json:"tags"`
 	Type      string `json:"type"`
 	Uptime    int    `json:"uptime"`
-	Vmid      int    `json:"vmid"`
+	Vmid      VMID   `json:"vmid"`
 
 	api *Pvesh `json:"-"`
+}
+
+// LxcList - get lxc containers list
+func (sh *Pvesh) LxcList() ([]LxcContainer, error) {
+
+	list := []LxcContainer{}
+
+	if err := sh.Get("nodes", sh.Hostname, "lxc").
+		Resolve(&list); err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}
+
+func LxcByVmid(lxcList []LxcContainer, vmid int) (*LxcContainer, bool) {
+	for _, container := range lxcList {
+		if container.Vmid == VMID(vmid) {
+			return &container, true
+		}
+	}
+	return nil, false
 }
 
 func (ct *LxcContainer) IsRunning() bool {
@@ -39,24 +60,24 @@ func (ct *LxcContainer) TagList() []string {
 
 func (sh *LxcContainer) Start() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "lxc", strconv.Itoa(sh.Vmid), "status", "start",
+		"nodes", sh.api.Hostname, "lxc", sh.Vmid.String(), "status", "start",
 	).Error
 }
 
 func (sh *LxcContainer) Stop() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "lxc", strconv.Itoa(sh.Vmid), "status", "stop",
+		"nodes", sh.api.Hostname, "lxc", sh.Vmid.String(), "status", "stop",
 	).Error
 }
 
 func (sh *LxcContainer) Shutdown() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "lxc", strconv.Itoa(sh.Vmid), "status", "shutdown",
+		"nodes", sh.api.Hostname, "lxc", sh.Vmid.String(), "status", "shutdown",
 	).Error
 }
 
 func (sh *LxcContainer) Reboot() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "lxc", strconv.Itoa(sh.Vmid), "status", "reboot",
+		"nodes", sh.api.Hostname, "lxc", sh.Vmid.String(), "status", "reboot",
 	).Error
 }

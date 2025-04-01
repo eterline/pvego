@@ -1,7 +1,6 @@
 package pvesh
 
 import (
-	"strconv"
 	"strings"
 )
 
@@ -21,9 +20,32 @@ type QemuVirtualMachine struct {
 	Status    string `json:"status"`
 	Tags      string `json:"tags"`
 	Uptime    int    `json:"uptime"`
-	Vmid      int    `json:"vmid"`
+	Vmid      VMID   `json:"vmid"`
 
 	api *Pvesh `json:"-"`
+}
+
+// QemuList - get qemu vms list
+func (sh *Pvesh) QemuList() ([]QemuVirtualMachine, error) {
+
+	list := []QemuVirtualMachine{}
+
+	if err := sh.Get("nodes", sh.Hostname, "qemu").
+		Resolve(&list); err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}
+
+// QemuByVmid - get qemu vms list
+func QemuByVmid(qemuList []QemuVirtualMachine, vmid int) (*QemuVirtualMachine, bool) {
+	for _, vm := range qemuList {
+		if vm.Vmid == VMID(vmid) {
+			return &vm, true
+		}
+	}
+	return nil, false
 }
 
 func (ct *QemuVirtualMachine) IsRunning() bool {
@@ -36,24 +58,24 @@ func (ct *QemuVirtualMachine) TagList() []string {
 
 func (sh *QemuVirtualMachine) Start() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "qemu", strconv.Itoa(sh.Vmid), "status", "start",
+		"nodes", sh.api.Hostname, "qemu", sh.Vmid.String(), "status", "start",
 	).Error
 }
 
 func (sh *QemuVirtualMachine) Stop() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "qemu", strconv.Itoa(sh.Vmid), "status", "stop",
+		"nodes", sh.api.Hostname, "qemu", sh.Vmid.String(), "status", "stop",
 	).Error
 }
 
 func (sh *QemuVirtualMachine) Shutdown() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "qemu", strconv.Itoa(sh.Vmid), "status", "shutdown",
+		"nodes", sh.api.Hostname, "qemu", sh.Vmid.String(), "status", "shutdown",
 	).Error
 }
 
 func (sh *QemuVirtualMachine) Reboot() error {
 	return sh.api.Create(
-		"nodes", sh.api.Hostname, "qemu", strconv.Itoa(sh.Vmid), "status", "reboot",
+		"nodes", sh.api.Hostname, "qemu", sh.Vmid.String(), "status", "reboot",
 	).Error
 }

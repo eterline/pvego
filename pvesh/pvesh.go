@@ -19,7 +19,7 @@ const (
 // Shell interface for the Proxmox VE API.
 type Pvesh struct {
 	Hostname string // Hostname of proxmox host
-	command  string // pvesh root dir
+	root     string // pvesh root command dir
 
 	ctx context.Context
 }
@@ -31,6 +31,8 @@ func New() (*Pvesh, error) {
 		context.Background(),
 	)
 }
+
+// ========== Class methods ==========
 
 func NewWithContext(ctx context.Context) (*Pvesh, error) {
 
@@ -46,7 +48,7 @@ func NewWithContext(ctx context.Context) (*Pvesh, error) {
 
 	return &Pvesh{
 		Hostname: hName,
-		command:  shPath,
+		root:     shPath,
 
 		ctx: ctx,
 	}, nil
@@ -54,6 +56,7 @@ func NewWithContext(ctx context.Context) (*Pvesh, error) {
 
 // =======================================
 
+// Version - get proxmox ve version info
 func (sh *Pvesh) Version() (PveSystemVersion, error) {
 
 	data := PveSystemVersion{}
@@ -67,53 +70,3 @@ func (sh *Pvesh) Version() (PveSystemVersion, error) {
 }
 
 // =======================================
-
-func (sh *Pvesh) Storage() ([]PveStorageInfo, error) {
-
-	infoList := []PveStorageInfo{}
-
-	if err := sh.Get("storage").
-		Resolve(&infoList); err != nil {
-		return nil, err
-	}
-
-	return infoList, nil
-}
-
-// ==============================================================================
-
-func (sh *Pvesh) Lxc() ([]LxcContainer, error) {
-
-	list := []LxcContainer{}
-
-	if err := sh.Get("nodes", sh.Hostname, "lxc").
-		Resolve(&list); err != nil {
-		return nil, err
-	}
-
-	for i, data := range list {
-		data.api = sh
-		list[i] = data
-	}
-
-	return list, nil
-}
-
-// ======================================
-
-func (sh *Pvesh) Qemu() ([]QemuVirtualMachine, error) {
-
-	list := []QemuVirtualMachine{}
-
-	if err := sh.Get("nodes", sh.Hostname, "qemu").
-		Resolve(&list); err != nil {
-		return nil, err
-	}
-
-	for i, data := range list {
-		data.api = sh
-		list[i] = data
-	}
-
-	return list, nil
-}

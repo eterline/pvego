@@ -1,6 +1,42 @@
 package pvesh
 
-import "strconv"
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+)
+
+type VMID int
+
+func (id VMID) String() string {
+	return fmt.Sprintf("%d", id)
+}
+
+func (id VMID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(fmt.Sprintf("%d", id))
+}
+
+func (id *VMID) UnmarshalJSON(data []byte) error {
+
+	var num int
+	if err := json.Unmarshal(data, &num); err == nil {
+		*id = VMID(num)
+		return nil
+	}
+
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return err
+	}
+
+	parsedNum, err := strconv.Atoi(str)
+	if err != nil {
+		return err
+	}
+
+	*id = VMID(parsedNum)
+	return nil
+}
 
 type AvgLoad [3]string
 
