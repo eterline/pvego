@@ -30,12 +30,11 @@ type NodeNetstat struct {
 	Dev  string `json:"dev"`
 	In   string `json:"in"`
 	Out  string `json:"out"`
-	Vmid string `json:"vmid"`
+	Vmid VMID   `json:"vmid"`
 }
 
 func (s *NodeNetstat) VMID() int {
-	v, _ := strconv.Atoi(s.Vmid)
-	return v
+	return int(s.Vmid)
 }
 
 func (sh *Pvesh) NodeNetstat() ([]NodeNetstat, error) {
@@ -130,7 +129,7 @@ type NodeDnsInfo struct {
 // DnsInfo - read DNS settings
 func (sh *Pvesh) Dns() (NodeDnsInfo, error) {
 	infoList := NodeDnsInfo{}
-	err := sh.Get("dns").Resolve(&infoList)
+	err := sh.Get("nodes", sh.Hostname, "dns").Resolve(&infoList)
 	return infoList, err
 }
 
@@ -165,9 +164,9 @@ func (hosts NodeHostsInfo) FormatData() map[*net.IP][]string {
 }
 
 // Hosts - read hosts file
-func (sh *Pvesh) Hosts() (NodeDnsInfo, error) {
-	infoList := NodeDnsInfo{}
-	err := sh.Get("hosts").Resolve(&infoList)
+func (sh *Pvesh) Hosts() (NodeHostsInfo, error) {
+	infoList := NodeHostsInfo{}
+	err := sh.Get("nodes", sh.Hostname, "hosts").Resolve(&infoList)
 	return infoList, err
 }
 
@@ -197,7 +196,7 @@ func (stat NetstatInfo) BytesOut() int64 {
 // Netstat - returns network stats for vms and containers
 func (sh *Pvesh) Netstat() ([]NetstatInfo, error) {
 	infoList := []NetstatInfo{}
-	err := sh.Get("netstat").Resolve(&infoList)
+	err := sh.Get("nodes", sh.Hostname, "netstat").Resolve(&infoList)
 	return infoList, err
 }
 
@@ -218,6 +217,6 @@ func (t TimeInfo) TimeIs() time.Time {
 // Time - returns time of host
 func (sh *Pvesh) Time() (TimeInfo, error) {
 	infoList := TimeInfo{}
-	err := sh.Get("time").Resolve(&infoList)
+	err := sh.Get("nodes", sh.Hostname, "time").Resolve(&infoList)
 	return infoList, err
 }

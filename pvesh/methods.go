@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -36,6 +37,8 @@ func NewPveshCallResponse(
 func (sh *Pvesh) fetch(name string, arg ...string) PveshCallResponse {
 	arg = append(arg, "--output-format", FormatJSON)
 
+	fmt.Println(name, arg)
+
 	exc := exec.CommandContext(sh.ctx, name, arg...)
 	out, err := exc.CombinedOutput()
 
@@ -60,6 +63,34 @@ func (sh *Pvesh) Delete(path ...string) PveshCallResponse {
 // Set - Call API PUT on <path>.
 func (sh *Pvesh) Set(path ...string) PveshCallResponse {
 	return sh.fetch(sh.root, "set", joinPath(path...))
+}
+
+type CommandArguments map[string]string
+
+func (args CommandArguments) AddInt(key string, value int) {
+	args[key] = strconv.Itoa(value)
+}
+
+func (args CommandArguments) AddString(key, value string) {
+	args[key] = value
+}
+
+func (args CommandArguments) Format() string {
+	values := []string{}
+
+	for key, value := range args {
+		values = append(values, fmt.Sprintf("--%s", key), value)
+	}
+
+	return strings.Join(values, " ")
+}
+
+// Create - Call API POST on <path>.
+func (sh *Pvesh) CreateWith(args CommandArguments, path ...string) PveshCallResponse {
+	if args != nil {
+		return sh.fetch(sh.root, "create", joinPath(path...), args.Format())
+	}
+	return sh.fetch(sh.root, "create", joinPath(path...))
 }
 
 func joinPath(path ...string) string {

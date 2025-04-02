@@ -2,24 +2,25 @@ package pvesh
 
 import (
 	"strings"
+	"time"
 )
 
 type QemuVirtualMachine struct {
 	CPU       int    `json:"cpu"`
 	Cpus      int    `json:"cpus"`
 	Disk      int    `json:"disk"`
-	Diskread  int    `json:"diskread"`
-	Diskwrite int    `json:"diskwrite"`
+	Diskread  int64  `json:"diskread"`
+	Diskwrite int64  `json:"diskwrite"`
 	Maxdisk   int64  `json:"maxdisk"`
 	Maxmem    int64  `json:"maxmem"`
-	Mem       int    `json:"mem"`
+	Mem       int64  `json:"mem"`
 	Name      string `json:"name"`
-	Netin     int    `json:"netin"`
-	Netout    int    `json:"netout"`
-	Pid       int    `json:"pid"`
+	Netin     int64  `json:"netin"`
+	Netout    int64  `json:"netout"`
+	Pid       int64  `json:"pid"`
 	Status    string `json:"status"`
 	Tags      string `json:"tags"`
-	Uptime    int    `json:"uptime"`
+	Uptime    int64  `json:"uptime"`
 	Vmid      VMID   `json:"vmid"`
 
 	api *Pvesh `json:"-"`
@@ -41,7 +42,7 @@ func (sh *Pvesh) QemuList() ([]QemuVirtualMachine, error) {
 // QemuByVmid - get qemu vms list
 func QemuByVmid(qemuList []QemuVirtualMachine, vmid int) (*QemuVirtualMachine, bool) {
 	for _, vm := range qemuList {
-		if vm.Vmid == VMID(vmid) {
+		if vm.Vmid.Value() == vmid {
 			return &vm, true
 		}
 	}
@@ -50,6 +51,10 @@ func QemuByVmid(qemuList []QemuVirtualMachine, vmid int) (*QemuVirtualMachine, b
 
 func (ct *QemuVirtualMachine) IsRunning() bool {
 	return ct.Status == "running"
+}
+
+func (ct *QemuVirtualMachine) UptimeDuration() time.Duration {
+	return time.Duration(ct.Uptime)
 }
 
 func (ct *QemuVirtualMachine) TagList() []string {
