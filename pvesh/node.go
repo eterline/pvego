@@ -1,6 +1,7 @@
 package pvesh
 
 import (
+	"fmt"
 	"net"
 	"regexp"
 	"strconv"
@@ -193,6 +194,53 @@ func (t TimeInfo) TimeIs() time.Time {
 func (sh *Pvesh) Time() (TimeInfo, error) {
 	infoList := TimeInfo{}
 	if err := sh.Get("nodes", sh.Hostname, "time").
+		Resolve(&infoList); err != nil {
+		return infoList, err
+	}
+	return infoList, nil
+}
+
+// =====================================
+
+type NetworkConfig struct {
+	Exists   ProxmoxBoolean `json:"exists"`
+	Active   int            `json:"active"`
+	Method   string         `json:"method"`
+	Method6  string         `json:"method6"`
+	Priority int            `json:"priority"`
+	Type     string         `json:"type"`
+
+	Families []string `json:"families"`
+	Iface    string   `json:"iface"`
+
+	Gateway string `json:"gateway"`
+	Address string `json:"address"`
+	CIDR    string `json:"cidr"`
+	Netmask string `json:"netmask"`
+
+	Autostart   int    `json:"autostart,omitempty"`
+	BridgeFD    string `json:"bridge_fd,omitempty"`
+	BridgePorts string `json:"bridge_ports,omitempty"`
+	BridgeSTP   string `json:"bridge_stp,omitempty"`
+	Comments    string `json:"comments,omitempty"`
+}
+
+func (cfg NetworkConfig) AddrGateway() net.IP {
+	return net.ParseIP(cfg.Gateway)
+}
+
+func (cfg NetworkConfig) Addr() (net.IP, *net.IPNet, error) {
+	return net.ParseCIDR(fmt.Sprintf("%s/%s", cfg.Address, cfg.Netmask))
+}
+
+func (cfg NetworkConfig) AddrIP() net.IP {
+	return net.ParseIP(cfg.Address)
+}
+
+// Network returns network interfaces info of proxmox host
+func (sh *Pvesh) Network() ([]NetworkConfig, error) {
+	infoList := []NetworkConfig{}
+	if err := sh.Get("nodes", sh.Hostname, "network").
 		Resolve(&infoList); err != nil {
 		return infoList, err
 	}
