@@ -45,22 +45,22 @@ func (sh *Pvesh) fetch(name string, arg ...string) PveshCallResponse {
 	return NewPveshCallResponse(out, err)
 }
 
-// Get - Call API GET on <path>.
+// Get Call API GET on <path>.
 func (sh *Pvesh) Get(path ...string) PveshCallResponse {
 	return sh.fetch(sh.root, "get", joinPath(path...))
 }
 
-// Create - Call API POST on <path>.
+// Create Call API POST on <path>.
 func (sh *Pvesh) Create(path ...string) PveshCallResponse {
 	return sh.fetch(sh.root, "create", joinPath(path...))
 }
 
-// Delete - Call API DELETE on <path>.
+// Delete Call API DELETE on <path>.
 func (sh *Pvesh) Delete(path ...string) PveshCallResponse {
 	return sh.fetch(sh.root, "delete", joinPath(path...))
 }
 
-// Set - Call API PUT on <path>.
+// Set Call API PUT on <path>.
 func (sh *Pvesh) Set(path ...string) PveshCallResponse {
 	return sh.fetch(sh.root, "set", joinPath(path...))
 }
@@ -85,7 +85,7 @@ func (args CommandArguments) Format() string {
 	return strings.Join(values, " ")
 }
 
-// Create - Call API POST on <path>.
+// Create Call API POST on <path>.
 func (sh *Pvesh) CreateWith(args CommandArguments, path ...string) PveshCallResponse {
 	if args != nil {
 		return sh.fetch(sh.root, "create", joinPath(path...), args.Format())

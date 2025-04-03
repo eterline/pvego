@@ -8,47 +8,7 @@ import (
 	"time"
 )
 
-type NodeTime struct {
-	Localtime int    `json:"localtime"`
-	Time      int    `json:"time"`
-	Timezone  string `json:"timezone"`
-}
-
-func (sh *Pvesh) NodeTime() (NodeTime, error) {
-
-	list := NodeTime{}
-
-	if err := sh.Get("nodes", sh.Hostname, "time").
-		Resolve(&list); err != nil {
-		return list, err
-	}
-
-	return list, nil
-}
-
-type NodeNetstat struct {
-	Dev  string `json:"dev"`
-	In   string `json:"in"`
-	Out  string `json:"out"`
-	Vmid VMID   `json:"vmid"`
-}
-
-func (s *NodeNetstat) VMID() int {
-	return int(s.Vmid)
-}
-
-func (sh *Pvesh) NodeNetstat() ([]NodeNetstat, error) {
-
-	list := []NodeNetstat{}
-
-	if err := sh.Get("nodes", sh.Hostname, "netstat").
-		Resolve(&list); err != nil {
-		return list, err
-	}
-
-	return list, nil
-}
-
+// NodeStatus status info of proxmox host
 type NodeStatus struct {
 	BootInfo struct {
 		Mode       string `json:"mode"`
@@ -98,6 +58,7 @@ type NodeStatus struct {
 	Wait   int64 `json:"wait"`
 }
 
+// NodeStatus of proxmox node
 func (sh *Pvesh) NodeStatus() (NodeStatus, error) {
 
 	stats := NodeStatus{}
@@ -110,34 +71,39 @@ func (sh *Pvesh) NodeStatus() (NodeStatus, error) {
 	return stats, nil
 }
 
-type NodeDnsAddr string
-
-func (dns NodeDnsAddr) IP() (net.IP, bool) {
-	if dns != "" {
-		return net.ParseIP(string(dns)), true
-	}
-	return nil, false
-}
+// =====================================
 
 type NodeDnsInfo struct {
-	Search string      `json:"search,omitempty"`
-	Dns1   NodeDnsAddr `json:"dns1,omitempty"`
-	Dns2   NodeDnsAddr `json:"dns2,omitempty"`
-	Dns3   NodeDnsAddr `json:"dns3,omitempty"`
+	Search string `json:"search,omitempty"`
+	Dns1   string `json:"dns1,omitempty"`
+	Dns2   string `json:"dns2,omitempty"`
+	Dns3   string `json:"dns3,omitempty"`
 }
 
-// DnsInfo - read DNS settings
+// DnsAddrs list of dns addresses of host
+func (dns NodeDnsInfo) DnsAddrs() []net.IP {
+	return []net.IP{
+		net.ParseIP(dns.Dns1),
+		net.ParseIP(dns.Dns2),
+		net.ParseIP(dns.Dns3),
+	}
+}
+
+// DnsInfo read DNS settings
 func (sh *Pvesh) Dns() (NodeDnsInfo, error) {
 	infoList := NodeDnsInfo{}
 	err := sh.Get("nodes", sh.Hostname, "dns").Resolve(&infoList)
 	return infoList, err
 }
 
+// =====================================
+
 type NodeHostsInfo struct {
 	Data   string `json:"data"`
 	Digest string `json:"digest"`
 }
 
+// FormatData hosts file ip map with names list
 func (hosts NodeHostsInfo) FormatData() map[*net.IP][]string {
 	mappedHosts := make(map[*net.IP][]string)
 
@@ -170,6 +136,8 @@ func (sh *Pvesh) Hosts() (NodeHostsInfo, error) {
 	return infoList, err
 }
 
+// =====================================
+
 type NetstatInfo struct {
 	Dev  string `json:"dev"`
 	In   string `json:"in"`
@@ -177,6 +145,7 @@ type NetstatInfo struct {
 	Vmid VMID   `json:"vmid"`
 }
 
+// BytesIn of netstat info
 func (stat NetstatInfo) BytesIn() int64 {
 	i, err := strconv.ParseInt(stat.In, 10, 64)
 	if err != nil {
@@ -185,6 +154,7 @@ func (stat NetstatInfo) BytesIn() int64 {
 	return i
 }
 
+// BytesOut of netstat info
 func (stat NetstatInfo) BytesOut() int64 {
 	i, err := strconv.ParseInt(stat.Out, 10, 64)
 	if err != nil {
@@ -193,30 +163,38 @@ func (stat NetstatInfo) BytesOut() int64 {
 	return i
 }
 
-// Netstat - returns network stats for vms and containers
+// Netstat returns network stats for vms and containers
 func (sh *Pvesh) Netstat() ([]NetstatInfo, error) {
 	infoList := []NetstatInfo{}
 	err := sh.Get("nodes", sh.Hostname, "netstat").Resolve(&infoList)
 	return infoList, err
 }
 
+// =====================================
+
+// TimeInfo of proxmox host
 type TimeInfo struct {
 	Local    int64  `json:"localtime"`
 	Time     int64  `json:"time"`
 	TimeZone string `json:"timezone"`
 }
 
+// LocalIs returns local time of proxmox host
 func (t TimeInfo) LocalIs() time.Time {
 	return time.Unix(t.Local, 0)
 }
 
+// TimeIs returns system time of proxmox host
 func (t TimeInfo) TimeIs() time.Time {
 	return time.Unix(t.Time, 0)
 }
 
-// Time - returns time of host
+// Time returns time info of proxmox host
 func (sh *Pvesh) Time() (TimeInfo, error) {
 	infoList := TimeInfo{}
-	err := sh.Get("nodes", sh.Hostname, "time").Resolve(&infoList)
-	return infoList, err
+	if err := sh.Get("nodes", sh.Hostname, "time").
+		Resolve(&infoList); err != nil {
+		return infoList, err
+	}
+	return infoList, nil
 }

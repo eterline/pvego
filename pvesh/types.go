@@ -90,6 +90,29 @@ func (id *VMID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type ProxmoxBoolean bool
+
+func (boolean ProxmoxBoolean) Value() bool {
+	return bool(boolean)
+}
+
+func (boolean ProxmoxBoolean) MarshalJSON() ([]byte, error) {
+	if boolean {
+		return []byte{'1'}, nil
+	}
+	return []byte{'0'}, nil
+}
+
+func (boolean *ProxmoxBoolean) UnmarshalJSON(data []byte) error {
+	var num int
+	err := json.Unmarshal(data, &num)
+	if err == nil {
+		*boolean = num != 0
+		return nil
+	}
+	return err
+}
+
 type AvgLoad [3]string
 
 type AvgLoadData struct {

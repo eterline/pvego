@@ -2,6 +2,7 @@ package pvesh
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 )
@@ -26,39 +27,37 @@ type Pvesh struct {
 
 // ========== Class constructor ==========
 
+// New creates pvesh instance
 func New() (*Pvesh, error) {
 	return NewWithContext(
 		context.Background(),
 	)
 }
 
-// ========== Class methods ==========
-
+// New creates pvesh instance
 func NewWithContext(ctx context.Context) (*Pvesh, error) {
 
-	shPath, err := exec.LookPath(MainCommand)
+	bin, err := exec.LookPath(MainCommand)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't find pvesh bin: %w", err)
 	}
 
-	hName, err := os.Hostname()
+	host, err := os.Hostname()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Pvesh{
-		Hostname: hName,
-		root:     shPath,
-
-		ctx: ctx,
+		Hostname: host,
+		root:     bin,
+		ctx:      ctx,
 	}, nil
 }
 
-// =======================================
+// ========== Class methods ==========
 
-// Version - get proxmox ve version info
+// Version get proxmox ve version info
 func (sh *Pvesh) Version() (PveSystemVersion, error) {
-
 	data := PveSystemVersion{}
 
 	if err := sh.Get("version").
@@ -68,5 +67,3 @@ func (sh *Pvesh) Version() (PveSystemVersion, error) {
 
 	return data, nil
 }
-
-// =======================================

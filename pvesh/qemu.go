@@ -26,7 +26,7 @@ type QemuVirtualMachine struct {
 	api *Pvesh `json:"-"`
 }
 
-// QemuList - get qemu vms list
+// QemuList get qemu vms list
 func (sh *Pvesh) QemuList() ([]QemuVirtualMachine, error) {
 
 	list := []QemuVirtualMachine{}
@@ -39,7 +39,7 @@ func (sh *Pvesh) QemuList() ([]QemuVirtualMachine, error) {
 	return list, nil
 }
 
-// QemuByVmid - get qemu vms list
+// QemuByVmid get qemu vms list
 func QemuByVmid(qemuList []QemuVirtualMachine, vmid int) (*QemuVirtualMachine, bool) {
 	for _, vm := range qemuList {
 		if vm.Vmid.Value() == vmid {
