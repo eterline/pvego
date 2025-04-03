@@ -204,7 +204,7 @@ func (sh *Pvesh) Time() (TimeInfo, error) {
 
 type NetworkConfig struct {
 	Exists   ProxmoxBoolean `json:"exists"`
-	Active   int            `json:"active"`
+	Active   ProxmoxBoolean `json:"active"`
 	Method   string         `json:"method"`
 	Method6  string         `json:"method6"`
 	Priority int            `json:"priority"`
@@ -218,11 +218,11 @@ type NetworkConfig struct {
 	CIDR    string `json:"cidr"`
 	Netmask string `json:"netmask"`
 
-	Autostart   int    `json:"autostart,omitempty"`
-	BridgeFD    string `json:"bridge_fd,omitempty"`
-	BridgePorts string `json:"bridge_ports,omitempty"`
-	BridgeSTP   string `json:"bridge_stp,omitempty"`
-	Comments    string `json:"comments,omitempty"`
+	Autostart   ProxmoxBoolean `json:"autostart,omitempty"`
+	BridgeFD    string         `json:"bridge_fd,omitempty"`
+	BridgePorts string         `json:"bridge_ports,omitempty"`
+	BridgeSTP   string         `json:"bridge_stp,omitempty"`
+	Comments    string         `json:"comments,omitempty"`
 }
 
 func (cfg NetworkConfig) AddrGateway() net.IP {

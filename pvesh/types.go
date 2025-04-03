@@ -60,7 +60,7 @@ func (id VMID) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return json.Marshal(fmt.Sprintf("%d", id))
+	return json.Marshal(int(id))
 }
 
 func (id *VMID) UnmarshalJSON(data []byte) error {
@@ -90,6 +90,8 @@ func (id *VMID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// ProxmoxBoolean logic value state for json parsing.
+// 1 or 0 => true or false
 type ProxmoxBoolean bool
 
 func (boolean ProxmoxBoolean) Value() bool {
@@ -104,13 +106,8 @@ func (boolean ProxmoxBoolean) MarshalJSON() ([]byte, error) {
 }
 
 func (boolean *ProxmoxBoolean) UnmarshalJSON(data []byte) error {
-	var num int
-	err := json.Unmarshal(data, &num)
-	if err == nil {
-		*boolean = num != 0
-		return nil
-	}
-	return err
+	*boolean = data[0] == '1'
+	return nil
 }
 
 type AvgLoad [3]string
